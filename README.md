@@ -2,7 +2,7 @@
 
 This is the repository for the 2019 data management course at Osaka University.
 
-### Content
+### Contents
 
 - slides: Lecture slides
 - code: Jupyter Notebook (ipynb) files
@@ -36,7 +36,7 @@ This is the repository for the 2019 data management course at Osaka University.
     - R_analyze_1.ipynb
     - R_analyze_2.ipynb
     
-### Note
+### Notes
 
 - You need to install Jupyter Notebook before opening ".ipynb" files. See "1_intro.pdf" for more details.
 - You need to install R and IRKernel before running R code in Jupyter Notebook. See "3_install_R.pdf" for more details.
