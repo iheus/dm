@@ -2,22 +2,15 @@
 
 This is the repository for the 2019 data management course at Osaka University.
 
-Lecturer: Shuhei Kitamura
-
-### Contents
+### Content
 
 - slides: Lecture slides
 - code: Jupyter Notebook (ipynb) files
 - data: Data
 
-### Prerequisites
-
-- You need to install Jupyter Notebook before opening ".ipynb" files. See "1_intro.pdf" for more details.
-- You need to install R and IRKernel before running R code in Jupyter Notebook. See "3_install_R.pdf" for more details.
-
 ### How to go through the material
 
-1. 1_intro.pdf (in slides)
+1. 1_intro.pdf
 2. Python
   - Basics 
     - python_basics_1.ipynb
@@ -34,7 +27,7 @@ Lecturer: Shuhei Kitamura
     - text_as_data_1.ipynb (text analysis, machine learning)
 3. R
   - Basics
-    - 3_install_R.ipynb
+    - 3_install_R.pdf
     - R_basics_1.ipynb
     - R_basics_2.ipynb
     - R_basics_3.ipynb
@@ -42,3 +35,8 @@ Lecturer: Shuhei Kitamura
     - R_clean_1.ipynb
     - R_analyze_1.ipynb
     - R_analyze_2.ipynb
+    
+### Note
+
+- You need to install Jupyter Notebook before opening ".ipynb" files. See "1_intro.pdf" for more details.
+- You need to install R and IRKernel before running R code in Jupyter Notebook. See "3_install_R.pdf" for more details.
