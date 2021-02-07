@@ -5,7 +5,7 @@ This is the repository for a data management course at OSIPP, Osaka University.
 ### Contents
 
 - slides: Lecture slides
-- code: Jupyter Notebook (ipynb) files
+- code: Jupyter Notebook (ipynb) and R (R and Rmd) files
 - data: Data
 
 ### How to go through the material
@@ -36,4 +36,4 @@ This is the repository for a data management course at OSIPP, Osaka University.
 ### Notes
 
 - You need to install Jupyter Notebook before opening ".ipynb" files. See "1_intro.pdf" for more details.
-- You need to install R and IRKernel before running R code in Jupyter Notebook. See "3_install_R.pdf" for more details.
+- You need to install R (and RStudio) before running R code. See "3_install_R.pdf" for more details.
