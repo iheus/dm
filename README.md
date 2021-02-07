@@ -1,6 +1,6 @@
-# Data Management 2019
+# Data Management
 
-This is the repository for the 2019 data management course at Osaka University.
+This is the repository for a data management course at OSIPP, Osaka University.
 
 ### Contents
 
@@ -11,30 +11,27 @@ This is the repository for the 2019 data management course at Osaka University.
 ### How to go through the material
 
 1. 1_intro.pdf
+    - python_install_1.ipynb
 2. Python
   - Basics 
-    - python_basics_1.ipynb
-    - python_basics_2.ipynb
-    - python_basics_3.ipynb
-    - python_basics_4.ipynb    
+    - python_basics_1_mod.ipynb
   - Data cleaning and analysis
     - 2_data_management.pdf
-    - python_clean_1.ipynb
-    - python_analyze_1.ipynb
-    - python_analyze_2.ipynb
+    - python_clean_data_1.ipynb
+    - python_make_final_data_1.ipynb
+    - python_analyze_data_1_mod.ipynb
   - Applications
-    - python_scraping_1.ipynb (web scraping)
-    - text_as_data_1.ipynb (text analysis, machine learning)
+    - python_scraping_1_mod.ipynb (web scraping)
+    - python_text_as_data_1.ipynb (text analysis, machine learning)
 3. R
   - Basics
     - 3_install_R.pdf
-    - R_basics_1.ipynb
-    - R_basics_2.ipynb
-    - R_basics_3.ipynb
+    - R_install_1.R
+    - R_basics_1.Rmd
   - Data cleaning and analysis
-    - R_clean_1.ipynb
-    - R_analyze_1.ipynb
-    - R_analyze_2.ipynb
+    - R_clean_data_1.Rmd
+    - R_make_final_data_1.Rmd
+    - R_analyze_data_1.Rmd
     
 ### Notes
 
