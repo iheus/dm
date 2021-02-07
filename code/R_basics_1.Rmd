@@ -1,0 +1,799 @@
+---
+title: "R Basics"
+author: "By Shuhei Kitamura"
+output:
+  html_document: default
+---
+
+
+### Outline<a id='top'></a>
+1. [Hello World](#sec1)
+2. [Arithmetic Operation](#sec2)
+3. [Variables and Objects](#sec3)
+4. [Data Types](#sec4)
+5. [Data Structures](#sec5)
+    1. [Vectors: (Atomic) Vectors](#sec5_1)
+        1. [Making a vector](#sec5_1_1)
+        2. [Data types](#sec5_1_2)
+        3. [Accessing items](#sec5_1_3)
+        4. [Checking the length of a vector](#sec5_1_4)
+        5. [Checking items](#sec5_1_5)
+        6. [Changing items](#sec5_1_6)
+        7. [Adding items](#sec5_1_7)
+        8. [Deleting items](#sec5_1_8)
+    2. [Vectors: Lists](#sec5_2)
+        1. [Making a list](#sec5_2_1)
+        2. [Accessing items](#sec5_2_2)
+        3. [Checking, changing, adding, and deleting items](#sec5_2_3)
+    2. [Matrices and Arrays](#sec5_3)
+        1. [Making a matrix or an array](#sec5_3_1)
+        2. [Accessing items](#sec5_3_2)
+        3. [Checking and changing items](#sec5_3_3)
+        4. [Adding items](#sec5_3_4)
+        5. [Deleting items](#sec5_3_5) 
+        6. [Item-by-item calculation](#sec5_3_6)
+        7. [Transposing a matrix](#sec5_3_7)
+        8. [Sorting items](#sec5_3_8)
+    3. [Data Frames](#sec5_4)
+        1. [Making a data frame](#sec5_4_1)
+        2. [Accessing items](#sec5_4_2)
+        3. [Checking shape, length, and structure](#sec5_4_3)
+        4. [Checking, changing, adding, and deleting items](#sec5_4_4)
+        5. [Item-by-item calculation, transposing a data frame, and sorting items](#sec5_4_5)
+        6. [Summarizing items](#sec5_4_6)
+    4. [Factors](#sec5_5)
+6. [Attributes](#sec6)
+7. [Loops and If Statements](#sec7) 
+8. [Functions](#sec8)
+9. [Packages](#sec9)
+
+
+## 1. Hello World<a id='sec1'></a>
+- Type `print("Hello World")` and run it.
+- Next, put `#` mark in front of it and run it again.
+
+[back to top](#top)
+```{r}
+# 
+```
+
+## 2. Arithmetic Operation<a id='sec2'></a>
+- Any arithmetic operation is possible with R.
+- Main operators are `+`, `-`, `*`, and `/` (like Python).
+- `^` or `**` for (mathematical) power. 
+    - Power is right associative.
+- `%%` for modulus (the remainder from the division) and `%/%` for floor division (integer divide).
+    - Recall: `%` (modulus) and `//` (floor division) in Python.
+- Calculate `7 %% 2` and `7 %/% 2`.
+    
+[back to top](#top)
+```{r}
+#
+```
+
+## 3. Variables and Objects<a id='sec3'></a>
+- You make a variable and assign data to it. The data are also called objects in R.
+- You write `<-` or `->` to define a variable in R. 
+    - You can also use `=` (like Python), but this notation is uncommon.
+- For example, `x <- 1` creates a variable with a name `x`, and assigns object `1` to it.
+- Tip: You can also use `( <- )` to assign and print at once.
+- Assign `1 + 2` to variable `x` and print it at the same time.
+
+[back to top](#top)
+```{r}
+#
+```
+
+## 4. Data Types<a id='sec4'></a>
+- Basic data types in R are: **double (real), integer, character,** and **logical**.
+    - Double is like float in Python.
+    - For integer, you should put `L` at the end of a value.
+    - There is also complex, but we will not talk about it in this class. 
+    - Character is like string in Python.
+    - Logical is like boolean in Python, but you should write `TRUE` or `FALSE`, instead of `True` or `False`.
+- To check the data type of an object, use `typeof()`.
+    - There are other functions like `mode()`. See e.g. [this website](https://stat.ethz.ch/R-manual/R-devel/doc/manual/R-lang.html#Objects) for further explanation. 
+- Check the data type of the following objects.
+
+[back to top](#top)
+```{r, eval=FALSE}
+typeof(1.0) # double
+typeof(1) # this is not integer unlike Python
+typeof(1L) # integer
+typeof("TRUE") # character
+typeof(TRUE) # logical
+```
+
+- There are relationships between logical and numeric numbers (e.g., double, integer) (like Python).
+- `FALSE` (logical) is `0` (double) and `0` (double) is `FALSE` (logical). 
+    - `TRUE` is `1` and `1` is `TRUE`.
+    - The other numeric numbers are also `TRUE`. 
+- However, characters are not `TRUE`. (Recall that strings are `True` in Python.)
+- What is the logical of `"Hello"`? Hint: Use `as.logical()`.
+```{r}
+#
+```
+
+- Tip: You can use logical for arithmetic computation (like Python), but you cannot use `+` and `*` for characters (unlike Python).
+- Try `TRUE + FALSE` and `"Ha" * 3`. What did you find?
+```{r}
+#
+```
+
+- This means that you cannot write like `print("Hello" + str(10) + "World")`.
+- Instead, use `paste()` or `paste0()`.
+- Run the following code. Can you see the difference?
+```{r, eval=FALSE}
+print(paste("I have", 10 ,"bucks."))
+print(paste0("I have", 10 ,"bucks."))
+```
+
+- To change data types, use, e.g., `as.double()`, `as.integer()`, `as.character()`, or `as.logical()`.
+    - You can also use `as.numeric()`.
+- To check data types, use, e.g., `is.double()`, `is.integer()`, `is.character()`, or `is.logical()`.
+- Change the data type of `1.5` to character.
+- Next, change the data type of `"abc"` to double. Did you get an error?
+```{r}
+#
+```
+
+- There are three objects for missing observations:
+    - `NULL` means non-existence and its data type is `NULL` (like `None` in Python).
+        - However, you cannot convert `NULL` to logical (unlike Python).
+    - `NaN` (Not a Number) is double (like `NaN` in Python).
+        - However, you cannot convert `NaN` to logical (unlike Python).    
+    - `NA` (Not Available) is logical.
+- Check the data type of `NULL`, `NaN`, and `NA`.
+```{r}
+#
+```
+
+## 5. Data Structures<a id='sec5'></a>
+- R has several data structures. Major ones are **vectors (vectors, lists)**, **matrices**, **arrays**, **data frames**, and **factors**.
+- Recall that arrays and dataframes are categorized as types (not data structures) in Python.
+
+[back to top](#top)
+
+### A. Vectors: (Atomic) Vectors<a id='sec5_1'></a>
+- A vector is one-dimensional.
+- A vector can contain any data type and a vector.
+- A vector itself is not a data type.
+
+[back to top](#top)
+
+#### a. Making a vector<a id='sec5_1_1'></a>
+- To make a vector, write like `c(item1, item2,...)`.
+- You can make an empty vector by typing `c()`.
+- Print `vec1` and `vec2`. Also, check the type of `vec1`. What did you find?
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("a", 1, TRUE, 2.5, c(1, 2))
+vec2 <- c()
+```
+
+- There are some clever ways to make a vector.
+```{r, eval=FALSE}
+print(-1:4) # a vector of integers
+print(double(5)) #  a vector of zeros as double. alternatively, use numeric(5)
+print(integer(5)) # a vector of zeros as integer
+print(seq(-1, 4, by=2)) # a vector of numeric numbers
+print(rep("Ha", 4))  # a vector of repeated items
+```
+
+- You can add **names** to a vector using `names(myvec) <- c('name1', 'name2', ...)`.
+    - These names are also called **attributes**.
+- Alternatively, you can directly make a vector with names `c(name1=item1, name2=item2, ...)`.
+- Print `vec1` and `vec2`.
+```{r, eval=FALSE}
+vec1 <- c(1, 10, 100, 1000)
+names(vec1) <- c('a', 'b', 'c', 'd')
+vec2 <- c(a=1, b=10, c=100, d=1000) # alternative way
+```
+
+- Tip: Vectors can be used for `print()` to show multiple objects at once (like `print( , )` in Python).
+- Run the following code.
+```{r, eval=FALSE}
+print(c(c(1, 2), c(3, 4)))
+```
+
+#### b. Data types<a id='sec5_1_2'></a>
+- ***Important***: If a vector contains multiple data types, the highest one is chosen (like `numpy.array` in Python).
+   - Data types are ordered: character > complex > real > integer > logical > NULL.
+- This applies for the data type of a vector itself and that of its items.
+- Check the data type of `vec1`. Also, check the data type of the second item in `vec1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("a", as.complex(1.0), 1L, TRUE, 2.5, NULL)
+```
+
+#### c. Accessing items<a id='sec5_1_3'></a>
+- To access items in a vector, use `myvec[]` (like Python). 
+    - ***Important***: R does ***not*** use zero-based indexing. The index starts from one.
+- A minus sign means exclusion, not the index from the end of a vector (unlike Python).
+- You can also use slicing, "fancy indexing" (using vectors), and masking for taking a subset of a vector.
+    - `myvec[inclusive:inclusive]` for slicing, that is, the end index is inclusive (unlike Python).
+    - You cannot write like `myvec[-1:]` or `myvec[:4]` unlike Python.
+- Run the following code.  Also change `vec1[1:3]` to `vec1[-1:3]` and run it again.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c(1, 10, 100, 1000)
+names(vec1) <- c('a', 'b', 'c', 'd') 
+print(vec1[-1]) # exclusion
+print(vec1[1:3]) # slicing
+print(vec1[c(2, 3)]) # use a vector of (built-in) indices
+print(vec1[c('b', 'c')]) # use a vector of (user-defined) names
+print(vec1[vec1 > 100]) # use masking
+```
+
+#### d. Checking the length of a vector<a id='sec5_1_4'></a>
+- To get the length of a vector, use `length()` (like `len()` in Python).
+- Check the length of `vec1`. Why, not `6`?
+ 
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("a", as.complex(1.0), 1L, TRUE, 2.5, NULL, c(2, 5))
+```
+
+#### e. Checking items<a id='sec5_1_5'></a>
+- You can check if an item is in a list using `%in%` like `"x" %in% myvec`, which returns `TRUE` or `FALSE` (like `in` in Python).
+    - There is no `not in` in R, however. You may write like `!("x" %in% myvec)`, which is the negation of `("x" %in% myvec)`.
+- Check if `"spike"` is in `vec1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("jerry", "tom", "spike")
+```
+
+#### f. Changing items<a id='sec5_1_6'></a>
+- To change an item of a vector use `myvec[index] <- new_item` (like Python).
+- Change `5` to `10` in `vec1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c(1, 5, 100, 1000)
+```
+
+#### g. Adding items<a id='sec5_1_7'></a>
+- To add an item to a vector, use `c(myvec, new_item)` or `append(myvec, new_item)`.
+    - The item can be a vector or other data structure.
+- Add `"tyke"` to `vec1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("jerry", "tom", "spike")
+```
+
+#### h. Deleting items<a id='sec5_1_8'></a>
+- Deleting items of a vector is like taking its subset.
+
+[back to top](#top)
+
+#### Exercise 1
+1. Make a vector of integers from 1 to 5. Name it `vec1`.
+2. Access only odd numbers in `vec1` using an `%in%` operator. Hint: Make a vector which includes odd numbers. Add a condition to `vec1` i.e., `vec1[condition]`.
+```{r}
+#
+```
+
+### B. Vectors: Lists<a id='sec5_2'></a>
+- A list is also a vector (in a broad sense).
+    - It can contain any data type and data structure.
+    - It preserves the data types of its items (unlike an (atomic) vector).
+- The type of a list is list.
+- Print `list1`. Check the type and length of `list1`. 
+- What is the data type of `"vec"` in `list1`? To access an item in a list, use `mylist[[index]]` or `mylist$index` instead of `mylist[]`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+list1 <- list(vec=c(1, 2), mat=matrix(1:4, nrow=2, ncol=2), df=mtcars)
+```
+
+#### a. Making a list<a id='sec5_2_1'></a>
+- To make a list, use `list()`.
+- Similar to vectors, you can add a name for each object.
+- Make `list1` using the following objects.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec <- c(1, 2)
+mat <- matrix(1:4, nrow=2, ncol=2)
+df <- mtcars
+```
+
+#### b. Accessing items<a id='sec5_2_2'></a>
+- To access an item in a list, use `[[]]` or ` $ `.
+    - Check the difference between `list1[1]` and `list1[[1]]`in the below example.
+        - Alternatively, you can write like `list1['name']` and `list1[['name']]` if names are given.
+    - Next, access the fourth element of `mat1`, i.e., `4`. Hint: `mylist[[index1]][index2]`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+list1 <- list(vec=c(1, 2), mat=matrix(1:4, nrow=2, ncol=2), df=mtcars)
+```
+
+#### c. Checking, changing, adding, and deleting items<a id='sec5_2_3'></a>
+- The ways you check, change, add, and/or delete items in a list are similar to those for vectors, except that you need to use `[[]]`, instead of `[]`.
+
+[back to top](#top)
+
+#### Exercise 2
+1. Make a list of `chr=c("a", "c")` and `int=c(3, 4, 5)` and name it `list1`.
+2. Change `"c"` to `"b"` in `list1`. Print it.
+```{r}
+#
+```
+
+### C. Matrices and Arrays<a id='sec5_3'></a>
+- Matrices and arrays are built-in data structures.
+    - A matrix is two-dimensional.
+    - An array is multi-dimensional.
+- The type of a matrix or an array is determined by its entries (like (atomic) vectors).
+- Print `mat1` and `array1`. Also, check the types of these objects. Try `typeof()` and `class()`.
+    - `class()` checks the property of an object that determines how generic functions operate with it.
+
+[back to top](#top)
+```{r, eval=FALSE}
+mat1 <- matrix(c(1, 2, "3", 4L), nrow=2, ncol=2) # 2 by 2 matrix
+colnames(mat1) <- c('v1', 'v2') # add column names if you like
+rownames(mat1) <- c('a', 'b') # add row names if you like
+array1 <- array(1:12, dim=c(2, 3, 2)) # 2 by 3 by 2 array
+```
+
+#### a. Making a matrix or an array<a id='sec5_3_1'></a>
+- You can make a matrix and an array using `matrix()` and `array()`, respectively.
+    - `matrix()`: Use `nrow` and `ncol` options to set the shape of a matrix. Use `dimnames=list(rownames, colnames)` to set names.
+    - `array()`: Use `dim` option to set the shape of an array. Use `dimnames=list(rownames, colnames)` to set names.
+- Make a 3 by 2 matrix `mat1` using `vec1`.
+- Make a 3 by 2 array `array1` using `vec1`. Any difference?
+- Also, add `dimnames=list(c('a', 'b', 'c'), c('v1', 'v2'))` option to `array1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c(1, 2, "3", 4L, 5, 6)
+```
+
+#### b. Accessing items<a id='sec5_3_2'></a>
+- To access an item, use `myobject[]`. You can use either names or indices.
+- You can also use slicing. For example, for two-dimensional objects:
+    - To get columns, use `myobject[, inclusive:inclusive]`.
+    - To get rows, use `myobject[inclusive:inclusive, ]`.
+- Run the following code.
+    
+[back to top](#top)
+```{r, eval=FALSE}
+mat1 <- matrix(c(1, 2, "3", 4L, 5, 6), nrow=3, ncol=3, dimnames=list(c('a', 'b', 'c'), c('v1', 'v2', 'v3')))
+# columns 
+print(mat1[, 1:2])  # In Python, mat1.iloc[:, 0:3]
+print(mat1[, 'v1'])  # In Python, mat1.loc[:, 'v1'] 
+# rows
+print(mat1[1:2, ])  # In Python, mat1.iloc[0:3, :]
+print(mat1['a', ])  # In Python, mat1.loc['a', :]
+```
+
+#### c. Checking and changing items<a id='sec5_3_3'></a>
+- The ways you check and change items in matrices and arrays are similar to those for vectors, except that names and indices can be multi-dimensional.
+    
+[back to top](#top)
+
+#### d. Adding items<a id='sec5_3_4'></a>
+- Similar to vectors, you can use e.g. `matrix(c(mymat, new_item), nrow=.., ncol=..)` to add items.
+- Alternatively, you can add items using `rbind()` or `cbind()`.
+    - `rbind(new_item)` adds new items to rows from the bottom.
+    - `cbind(new_item)` adds new items to columns from the right.
+- In both cases, the length of a new object should be the same as that of the original object. Otherwise, the redundant items will be dropped.
+- Print `mat1`. Add `c(1, 2)` to `mat1` vertically using `rbind()`. What about `c(1, 2, 3)`?
+    
+[back to top](#top)
+```{r, eval=FALSE}
+mat1 <- matrix(c(1, 2, "3", 4L), nrow=2, ncol=2) 
+```
+
+#### e. Deleting items<a id='sec5_3_5'></a>
+- Deleting items is like taking a subset.
+
+[back to top](#top)
+
+#### f. Item-by-item calculation<a id='sec5_3_6'></a>
+- You can do item-by-item calculation of matrices using `+`, `-`, `*`, and `/`.
+- Take the item-by-item summation of `mat1` and `mat2`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+mat1 <- matrix(c(1, 2, 3, 4), nrow=2, ncol=2) 
+mat2 <- matrix(c(5, 6, 7, 8), nrow=2, ncol=2)
+```
+
+#### g. Transposing a matrix<a id='sec5_3_7'></a>
+- To transpose a matrix, use `t()`.
+- Transpose `mat1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+mat1 <- matrix(1:6, nrow=3, ncol=2) 
+```
+
+#### h. Sorting items<a id='sec5_3_8'></a>
+- To sort items in a matrix, use `order()` (like `sort_values` in Python).
+- You can sort items by using more than one columns/rows.
+- To sort in a descending order, add `-` sign.
+- Sort `mat1` in a descending order using `'v2'` and `'v3'`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+mat1 <- matrix(c(1, 3, 5, 6, 6, 9, 2, 7, 4), nrow=3, ncol=3, dimnames=list(NULL, c('v1', 'v2', 'v3'))) 
+print(mat1[order(mat1[, 'v2'], mat1[, 'v3']), ]) 
+```
+
+#### Exercise 3
+1. Make a 3-by-4 matrix of double (real) numbers from -9 to 2 and name it `mat1`. Hint: `seq()`.
+2. Sort the rows of `mat1` in a descending order using the second column and define a new matrix `mat2`.
+3. Muliply `mat1` by `mat2`.
+```{r}
+#
+```
+
+### D. Data Frames<a id='sec5_4'></a>
+- Data frames are similar to `pandas.DataFrame` in Python.
+    - Data frames are also like R's matrices, but preserve the types of their entries.
+- The type of a data frame is list.
+- Print and check the types of `df1`, `df1[3]`, and `df1[[3]]`. Try `typeof()` and `class()`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("tom", "jerry", "tom", "jerry")
+vec2 <- c(1999L, 2000L, 1999L ,2000L)
+vec3 <- c(NaN, 0.2, 0.4, 0.1)
+vec4 <- c(TRUE, FALSE, FALSE, TRUE)
+df1 <- data.frame(name=vec1, year=vec2, num=vec3, log=vec4, row.names=c('a', 'b', 'c', 'd')) 
+```
+
+#### a. Making a data frame<a id='sec5_4_1'></a>
+- To make a data frame, use `data.frame()`.
+    - To add a column name, write like `name1=item1, name2=item2, ...`.
+    - To add a row name, add a option like `row.names=c('name1', 'name2', ...)`.
+- Make a data frame using `vec1` and `vec2`, where the column name should be `'name'` and `'year'`, respectively.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("tom", "jerry", "tom", "jerry")
+vec2 <- c(1999L, 2000L, 1999L ,2000L)
+```
+
+#### b. Accessing items<a id='sec5_4_2'></a>
+- To access items in a data frame, use `mydf[]` or `mydf[[]]`.
+    - `mydf[]` preserves the data frame structure, while `mydf[[]]` returns a vector.
+    - You can write like `mydf[row, column]`, but cannot write `mydf[[row, column]]`.
+    - You can also write like `mydf$column_name`, which is equivalent to `mydf[['column_name']]` to get a column.
+- Print `df1['name']`, `df1[['name']]`, and `df1$name`. Also, check their types. Use `typeof()` and `class()`.
+- Access the first two items in the `'year'` column using slicing.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c("tom", "jerry", "tom", "jerry")
+vec2 <- c(1999L, 2000L, 1999L ,2000L)
+vec3 <- c(NaN, 0.2, 0.4, 0.1)
+vec4 <- c(TRUE, FALSE, FALSE, TRUE)
+df1 <- data.frame(name=vec1, year=vec2, num=vec3, log=vec4, row.names=c('a', 'b', 'c', 'd'))
+```
+
+#### c. Checking shape, length, and structure<a id='sec5_4_3'></a>
+- To get a dimension, use `dim()` (like `.shape` in Python).
+- To get the number of rows and columns, use `nrow()` and `ncol()`, respectively.
+    - Alternatively, you can also use `length()` and `lengths()`.
+- To get the structure of a data frame and the types of its entries, use `str()` (like `.info` in Python).
+
+[back to top](#top)
+```{r, eval=FALSE}
+#print(mtcars) # mtcars is built-in data
+print(dim(mtcars))
+print(nrow(mtcars)) 
+print(ncol(mtcars))
+print(length(mtcars))
+print(lengths(mtcars))
+print(str(mtcars)) 
+```
+
+#### d. Checking, changing, adding, and deleting items<a id='sec5_4_4'></a>
+- Such operations for data frames are very similar to those for matrices.
+
+[back to top](#top)
+
+#### e. Item-by-item calculation, transposing a data frame, and sorting items<a id='sec5_4_5'></a>
+- Such operations are similar to those for matrices.
+
+[back to top](#top)
+
+#### f. Summarizing items<a id='sec5_4_6'></a>
+- To get a summary statistics of data, use `summary()` (like `describe()` in Python).
+
+[back to top](#top)
+```{r, eval=FALSE}
+print(summary(mtcars))
+```
+
+#### Exercise 4
+1. Make a data frame `df1` using `c("mickey", "minnie", "pooh")`, `c(175, 181, 162)`, and `c(78, 82, 64)`. Name them `'name'`, `'height'`, and `'weight'`, respectively.
+2. See what happens to the type of the `'name'` column using `df1[[]]`, when you add the `stringsAsFactors=TRUE` option.
+```{r, eval=FALSE}
+df1 <- data.frame(name=c("mickey", "minnie"), height=c(175, 181), stringsAsFactors=TRUE)
+```
+
+### E. Factors<a id='sec5_5'></a>
+- In some cases, it is convenient to save characters as integers. Such data are called factors.
+    - The type of a factor is integer.
+    - A factor uses names as a levels attribute.
+- Functions for regressions often use factors.
+- Print `fac1`. Then, check the type and summary of `fac1`. For checking the type, use both `typeof()` and `class()`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+fac1 <- factor(c("tom", "jerry", "spike", "tom", "jerry", "tom"))
+```
+
+## 6. Attributes<a id='sec6'></a>
+- All objects except `NULL` can have some attributes.
+    - For example, names are attributes.
+- To check the attributes of an object, use `attributes()`.
+- Check the attributes of `vec1` and `fac1`.
+- Also, use `levels()` for `fac1`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+vec1 <- c(v1=1, v2=10, v3=100, v4=1000)
+fac1 <- factor(c("tom", "jerry", "spike"))
+```
+
+## 7. Loops and If Statements<a id='sec7'></a>
+- R has `for`, `while`, and `repeat` loops.
+
+[back to top](#top)
+
+- Use braces to make a loop. Also, if conditions should be surrounded by parentheses.
+- You can make a loop in the following way:
+```R
+for (item in 1:5) { # use braces. if conditions should be surrounded by parentheses.
+    print(paste("Current number is", item))
+}
+```
+- Make a loop that prints integers from 1 to 10.
+```{r, eval=FALSE}
+# 
+```
+
+- You can also make a loop over a vector, list, matrix (array), data frame, and factor.
+- Run the following code.
+```{r, eval=FALSE}
+print("--- loop over a vector ---")
+for (item in c(1, 2, 3)) { 
+    print(paste("Current number is", item))
+}
+
+print("--- loop over a list ---")
+for (item in list(1, "a", TRUE)) {
+    print(paste("Current number is", item))
+}
+
+print("--- loop over a matrix ---")
+for (item in matrix(1:4, nrow=2, ncol=2)) { 
+    print(paste("Current number is", item))
+}
+
+print("--- loop over a data frame ---")
+for (item in data.frame(var1=c(1, 2), var2=c("a", "b"))) { 
+    print(paste("Current number is", item))
+}
+
+print("--- loop over a factor ---")
+for (item in factor(c("a", "b"))) { 
+    print(paste("Current number is", item))
+}
+```
+
+- You can also write a loop in a single line.
+```{r, eval=FALSE}
+for (item in c("minnie", "mickey", "pooh")) print(paste("My favorite character is", item))
+```
+
+- You may often append items using a loop.
+```{r, eval=FALSE}
+vec1 <- c()
+for (i in 1:10) {
+    vec1[i] <- as.character(i)
+}
+print(vec1)
+```
+
+- You can also use `if`, `else if` and/or `else`.
+    - There is no `elif` (unlike Python).
+```{r, eval=FALSE}
+vec1 = c(-1, 1, 3, 10)
+for (x in vec1) {
+    if (x < 0) {
+        print("if")
+    }
+    else if (x >= 0 & x < 5) {
+        print("elif")        
+    }
+    else {
+        print("else")
+    }   
+}
+```
+
+- You can also write if statements in one line.
+```{r, eval=FALSE}
+vec1 = c(-1, 1, 3, 10)
+for (x in vec1) if (x < 0) print("if") else if (x >= 0 & x < 5) print("else if") else print("else")
+```
+    
+- To make if conditions, you can use relational operators (`==`, `!=`, `>`, `<`, `>=`, `<=`), logical operators (`&`, `|`, `!`), and the membership operator (`%in%`).
+    - There is no `and`, `or`, `is`, `is not`, or `not in` (unlike Python).
+```{r, eval=FALSE}
+list1 = list("tom", 1.75, 3, NULL)
+for (x in list1) {
+    if (is.null(x)) {
+        print("NULL")        
+    }
+    else if (is.double(x) | is.integer(x)) {
+        if (x >= 0 & x < 2) {
+            print("0 <= x < 2")
+        }
+        else {
+            print("x < 0 or x >= 2")                     
+        }
+    }    
+    else {
+        print("neither NULL, nor double, nor int")            
+    }
+}
+```
+
+- For finite loops, use `while`.
+    - There is no `+=` or `-=` (unlike Python).
+```{r, eval=FALSE}
+cnt <- 0
+while (cnt < 10) {
+    cnt <- cnt + 1
+    print(cnt)    
+}
+```
+
+- For infinite loops, use `repeat` (like `while True` in Python).
+- You may often use `break` and `next` in a `while` loop.
+    - `break` means that you will exit from the current loop (like `break` in Python).
+    - `next` means that you will go up to the start of the current loop (like `continue` in Python).
+```{r, eval=FALSE}
+cnt <- 0
+repeat {
+    cnt <- cnt + 1
+    if (cnt == 5) {
+        next
+    } else if (cnt > 10) {
+        break        
+    }
+    print(cnt)    
+}
+```
+
+- If you want to skip an error, you may use `tryCatch()`.
+    - You will learn how to make a function soon.
+- First, try the following code.
+```{r, eval=FALSE}
+func1 <- function(x) {
+    y <- log(x)
+    return(y)
+}
+
+list1 <- list(1, -2, 0.5, "abc")
+for (input in list1) {
+    print(paste("Log of", input, "=", func1(input)))
+}
+```
+
+- Next, try the following code.
+```{r, eval=FALSE}
+func1 <- function(x) {
+    y <- tryCatch(log(x),
+          warning = function(w) {print(paste("Error: Negative Argument", x)); NaN},
+          error = function(e) {print(paste("Error: Non-numeric Argument", x)); NaN})
+    return(y)
+}
+
+list1 <- list(1, -2, 0.5, "abc")
+for (input in list1) {
+    print(paste("Log of", input, "=", func1(input)))
+}
+```
+
+#### Exercise 5
+1. Make a loop that prints all items in `list1`.
+2. Change the loop so that it prints numeric numbers, and prints `"not a numeric number"` otherwise.
+```{r, eval=FALSE}
+list1 <- list(1, -2, 0.5, "abc")
+```
+
+## 8. Functions<a id='sec8'></a>
+- You have already used some of the functions such as `print()`, `paste()`, and `summary()`.
+    - `builtins()` shows the list of built-in functions.
+- You can get a help document using `?` or `help()` (like Python).
+- Some functions can be used only for specific types.
+- Get a help document for `length()`
+
+[back to top](#top)
+```{r, eval=FALSE}
+#
+```
+
+- You can check the source code of a function using `getAnywhere()`, if available.
+- Get the source code of `summary` using `getAnywhere(summary.default)`.
+```{r, eval=FALSE}
+#
+```
+
+- You can make your own function.
+- Print `mysum(1, 2)`.
+```{r, eval=FALSE}
+mysum <- function(x, y) {
+    z <- x + y
+    print(paste("compute the sum of", x, "and", y))
+    return(c(x, y, z))
+}
+```
+
+#### Exercise 6
+1. Make a function that prints "Two items are equal." if inputs of a list of length two are the same, and "Two items are not equal." otherwise.
+2. Test it using `list1`.
+```{r, eval=FALSE}
+list1 <- list(1, 1L)
+```
+
+## 9. Packages<a id='sec9'></a>
+- Similar to Python, R has many packages.
+- There are 16,445 packages (as of 2020/10/21) in  [CRAN](https://cran.r-project.org/).
+- To install a package, use `install.packages(" ")`. You can use `install.packages(c(" "," ", ...))` to install multiple packages.
+    - You always need quotation marks!
+- Installed packages can be loaded using `library()`.
+    - Once installed, you can use a function without referring to a package.
+
+[back to top](#top)
+```{r, eval=FALSE}
+library(ggplot2)
+```
+
+- To check available functions in a package, use `lsf.str()` or `ls()`.
+- Run the following code.
+```{r, eval=FALSE}
+lsf.str("package:ggplot2")
+#ls("package:ggplot2")
+```
+
+- You can see the list of loaded packages using `(.packages())`.
+- You can unload packages using `detach()`.
+```{r, eval=FALSE}
+(.packages())
+detach(package:ggplot2)
+(.packages())
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

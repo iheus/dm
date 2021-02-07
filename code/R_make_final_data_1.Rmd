@@ -1,0 +1,265 @@
+---
+title: "Making Final Data using R"
+author: "By Shuhei Kitamura"
+output:
+  html_document: default
+---
+
+- We already have cleaned data. The next step is to make the final data for analysis.
+- In this exercise, we will put eight files together. How?
+    1. Append US Senate election data
+    2. Append daily temperature data
+    3. Merge them
+- Our goal is to make the final data that have a panel structure.
+
+### Outline<a id='top'></a>
+1. [Importing Data](#sec1)
+2. [Combining Data](#sec2)
+3. [Reshaping Data](#sec3)  
+4. [Making Variables](#sec4)
+5. [Saving Data](#sec5)
+
+```{r, eval=FALSE}
+# load packages
+library(plyr)
+library(tidyverse)
+```
+
+```{r, eval=FALSE}
+# set the display options (not necessary)
+options(repr.matrix.max.rows=200, repr.matrix.max.cols=100) 
+```
+
+```{r, eval=FALSE}
+# set the working directory (if necessary)
+# setwd('...') 
+```
+
+## 1. Importing Data<a id='sec1'></a>
+- Import data as usual. Recall that all files are saved in csv format.
+
+[back to top](#top)
+```{r, eval=FALSE}
+elec_data <- list()
+temp_data <- list()
+for (year in seq(2008,2014,by=2)) {
+    elec_data[[as.character(year)]] <- read.table(paste0('us_senate_R_', year, '.csv'), sep=",", header = TRUE)
+    temp_data[[as.character(year)]] <- read.table(paste0('us_daily_temp_R_', year, '.csv'), sep=",", header = TRUE)
+}
+```
+
+## 2. Combining Data<a id='sec2'></a>
+### Appending
+- To append data, you can use `rbind()`.
+- Append `df2` to `df1` using `rbind()`.
+
+[back to top](#top)
+```{r, eval=FALSE}
+df1 <- as.data.frame(matrix(1:4, nrow=2, ncol=2, byrow=TRUE), col.name=c('v1', 'v2'))
+df2 <- as.data.frame(matrix(5:8, nrow=2, ncol=2, byrow=TRUE), col.name=c('v1', 'v2'))
+```
+
+- However, this function is not quite as useful as `pd.concat` in Python. For example, outer join is not supported.
+    - In that case, use `rbind.fill()` in `plyr` package.
+    - Alternatively, use `bind_rows()` in `dplyr` package.
+- Append `df1` to `df2` using `rbind()`. Then, try `rbind.fill()`.
+```{r, eval=FALSE}
+df1 <- as.data.frame(matrix(c(1, NaN, 10L, "abc"), nrow=2, ncol=2), col.name=c('v1', 'v2'))
+df2 <- as.data.frame(matrix(1:9, nrow=3, ncol=3, byrow=TRUE), col.name=c('v1', 'v2', 'v3'))
+```
+
+- Let's combine all years for election data and temperature data, respectively.
+- Wait... but temperature data are already very long (> 250,000 observations).
+- Let's reduce the sizes of the datasets before appending them.
+
+### Group aggregation
+- Our goal is to keep a single observation for each state and year. 
+- How? There are several strategies.
+    - Compute mean/max/min/std, etc. (e.g., mean temperature for California, etc.)
+    - Keep some of the observations
+    - Reshape data
+- I suggest the following procedure:
+    1. Keep the Election Day temperature
+    2. Take the mean of `'arithmetic_mean'` (daily average temperature) and the max and mean of `'1st_max_value'` (daily max temperature).
+- Do they make sense to you?
+
+- Let's keep the Election Day temperature for each year.
+    - Election Day: November 4th, 2008, November 2nd, 2010, November 6th, 2012, November 8th, 2014
+```{r, eval=FALSE}
+temp_data[['2008']] <- temp_data[['2008']][temp_data[['2008']]['date_local'] == "2008-11-04", ]
+temp_data[['2010']] <- temp_data[['2010']][temp_data[['2010']]['date_local'] == "2010-11-02", ]
+temp_data[['2012']] <- temp_data[['2012']][temp_data[['2012']]['date_local'] == "2012-11-06", ]
+temp_data[['2014']] <- temp_data[['2014']][temp_data[['2014']]['date_local'] == "2014-11-08", ]
+```
+
+- Next, let's aggregate values. A powerful method for aggregation is `group_by()` and `summarize()` in `dplyr` package.
+- In this example, we use a useful pipe operator `%>%`.
+    - Starting from initial inputs, apply several functions in a sequential way.
+    - For example: `x %>% f(y)` for `f(x, y)`, `x %>% f(y) %>% g(z)` for `g(f(x, y), z)`.  
+    - See also [this site](https://www.datacamp.com/community/tutorials/pipe-r-tutorial) for an explanation about pipes.
+    - If you want to see the outcome for each step, install an [addin](https://github.com/daranzolin/ViewPipeSteps) for RStudio.
+```{r, eval=FALSE}
+head(mtcars)
+mtcars %>%
+    filter(hp > 100) %>% # or subset(), keep samples that have gross horsepower > 100
+    group_by(cyl) %>% # group by the number of cylinders
+    summarize(mpg_mean=mean(mpg), mpg_sd=sd(mpg), n=n()) # summary statistics of mpg (miles per gallon)
+```
+
+- Compute the mean of `'arithmetic_mean'` (daily average) and the max and mean of `'1st_max_value'` (daily max) for each state.
+    - Also, add a new column `elec_year`.
+```{r, eval=FALSE}
+for (year in seq(2008,2014,by=2)) {
+    temp_data[[paste0(year, '_agg')]] <- 
+        temp_data[[as.character(year)]] %>% # data 
+        group_by(state_name) %>% # group by state name
+        summarize( # compute mean, max, and min
+            temp_mean = mean(arithmetic_mean, na.rm=TRUE),
+            temp_max_max = max(x1st_max_value, na.rm=TRUE),
+            temp_max_mean = mean(x1st_max_value, na.rm=TRUE)
+        )    
+    temp_data[[paste0(year, '_agg')]]['elec_year'] <- as.integer(year)
+}
+```
+
+- Finally, it's time to append all the data.
+```{r, eval=FALSE}
+elec_all <- elec_data[['2008']] 
+temp_all <- temp_data[['2008_agg']] 
+for (year in seq(2010,2014,by=2)){
+    elec_all <- rbind(elec_all, elec_data[[as.character(year)]])
+    temp_all <- rbind(temp_all, temp_data[[paste0(year,'_agg')]])
+}
+```
+
+### Merging
+- Merging means that you combine data horizontally.
+- To merge R's objects, use `inner_join` or `full_join` in `dplyr` package.
+    - You can also use `right_join` or `left_join` in the same package.
+    - Alternatively, use built-in `merge` instead.
+- Run the following code to merge `df1` and `df2`.
+```{r, eval=FALSE}
+df1 <- data.frame(name=c('tom', 'jerry'), educ=c(9, 12))
+df2 <- data.frame(name=c('tom', 'jerry', 'spike'), height=c(185, 170, 165), weight=c(70, 62, 60))
+print(inner_join(df1, df2, by='name')) # inner join (intersection)
+print(full_join(df1, df2, by='name')) # outer join (union)
+print(right_join(df1, df2, by='name'))  # right join (keep right data)
+print(left_join(df1, df2, by='name')) # left join (keep left data)
+# print(merge(df1, df2, by='name')) # inner join (intersection)
+# print(merge(df1, df2, by='name', all=TRUE)) # outer join (union)
+# print(merge(df1, df2, by='name', all.y=TRUE))  # right join (keep right data)
+# print(merge(df1, df2, by='name', all.x=TRUE)) # left join (keep left data)
+```
+
+- Ids can be different.
+```{r, eval=FALSE}
+df1 <- data.frame(name1=c('tom', 'jerry'), educ=c(9, 12))
+df2 <- data.frame(name2=c('tom', 'jerry', 'spike'), height=c(185, 170, 165), weight=c(70, 62, 60))
+print(full_join(df1, df2, by=c('name1' = 'name2')))
+#print(merge(df1, df2, by.x='name1', by.y='name2', all=TRUE))
+```
+
+- You can use more than one id.
+```{r, eval=FALSE}
+df1 <- data.frame(name=c('tom', 'jerry'), educ=c(9, 12), year=c(2000, 2000))
+df2 <- data.frame(name=c('tom', 'jerry'), height=c(185, 170, 187, 171), weight=c(70, 62, 75, 63), year=c(2000, 2000, 2001, 2001))
+print(full_join(df1, df2, by=c('name', 'year')))
+#print(merge(df1, df2, by=c('name','year'), all=TRUE))
+```
+
+- What happens if two datasets have the same column name with different values?
+```{r, eval=FALSE}
+df1 <- data.frame(name=c('tom', 'jerry'), height=c(185, 170))
+df2 <- data.frame(name=c('tom', 'jerry'), height=c(185, 172))
+print(full_join(df1, df2, by='name'))
+#print(merge(df1, df2, by='name', all=TRUE))
+```
+
+- Let's merge election and temperature data.
+- Before doing so:
+    - Check which variable is an id. (There can be more than one id.)
+    - Check that the ids are unique in at least one of the data.
+- Which variables are ids in election and temperature data?
+
+- Check that state names and election years look fine before merging.
+- Run the following code.
+
+```{r, eval=FALSE}
+print(c(unique(elec_all[['state_long']]), unique(elec_all[['elec_year']])))
+print(c(unique(temp_all[['state_name']]), unique(temp_all[['elec_year']])))
+```
+
+### Removing spaces
+- Though not in this case, characters often contain strange spaces.
+- In that case, we have to remove them. Otherwise, we will not be able to merge data properly.
+- To remove spaces, use `str_trim(, side=xxx)`, where `side` refers to the side that has whitespaces. Available options are `'right'`, `'both'`, and `'left'`.
+
+- Finally, check that each corresponding ids share the same type.
+```{r, eval=FALSE}
+print(c(typeof(elec_all[['state_long']]), typeof(temp_all[['state_name']])))
+print(c(typeof(elec_all[['elec_year']]), typeof(temp_all[['elec_year']])))
+```
+
+- Now, let's merge the two datasets.
+```{r, eval=FALSE}
+data_use <- full_join(elec_all, temp_all, by=c('state_long' = 'state_name', 'elec_year' = 'elec_year'))
+```
+
+- Print `data_use`, which should be in the long format. You will often use this type of data structure in the panel data analysis.
+```{r, eval=FALSE}
+#
+```
+
+## 3. Reshaping Data<a id='sec3'></a>
+- If necessary, reshape data for analysis. In that case, use `reshape`.
+    - In our case, we don't need to reshape the data.
+    
+[back to top](#top)
+```{r, eval=FALSE}
+data1 <- reshape(data_use, idvar="state_long", timevar="elec_year", direction="wide") # from long to wide
+rownames(data1) <- NULL # delete old rownames
+```
+
+```{r, eval=FALSE}
+data2 <- reshape(data1, idvar="state_long", timevar="elec_year", direction="long") # back to long
+rownames(data2) <- NULL # delete old rownames
+colnames(data2) <- colnames(data_use) # use original column names
+data2 # this data has 8 more rows than data_use
+```
+
+## 4. Making Variables<a id='sec4'></a>
+- You may need more variables for analysis. For example:
+    - Logarithm
+    - Total, mean, min, max...
+    - Share, ratio...
+- Let's make 
+    - Vote share of Republican and Democratic candicates
+    - Natural logarithm of temperature
+        
+[back to top](#top)
+```{r, eval=FALSE}
+# make vote shares
+data_use['gelec_total'] <- rowSums(data_use[c('gelec_dem','gelec_rep','gelec_oth')], na.rm=TRUE)
+data_use['rep_share'] = data_use['gelec_rep'] / data_use['gelec_total'] # republican vote share
+data_use['dem_share'] = data_use['gelec_dem'] / data_use['gelec_total'] # democrat vote share
+
+# take natural logs
+data_use['ln_temp_mean'] <- log(data_use['temp_mean'])
+data_use['ln_temp_max_max'] <- log(data_use['temp_max_max'])
+data_use['ln_temp_max_mean'] <- log(data_use['temp_max_mean'])
+```
+
+## 5. Saving Data<a id='sec5'></a>
+        
+[back to top](#top)
+```{r, eval=FALSE}
+write.table(data_use, file='data_use_R.csv', sep=",", na="", row.names=FALSE)
+
+```
+
+
+    
+
+
+
+

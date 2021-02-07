@@ -1,0 +1,267 @@
+---
+title: "Cleaning Data using R"
+author: "By Shuhei Kitamura"
+output:
+  html_document: default
+---
+
+
+#### 　
+- **Research Question**: Is there any relationship between Election-Day temperature and electoral outcomes?
+- In this course, we use two datasets
+    - [Senate election results](https://transition.fec.gov/pubrec/electionresults.shtml) in the United States
+    - [Daily temperature](https://aqs.epa.gov/aqsweb/airdata/download_files.html)
+- We start by cleaning the datasets.
+
+### Outline<a id='top'></a>
+1. [Importing Data](#sec1)
+2. [Treating Missing Values](#sec2)
+3. [Selecting Columns](#sec3)
+4. [Selecting Rows](#sec4)
+5. [Treating Other Values](#sec5)
+6. [Saving Data](#sec6)
+
+```{r, eval=FALSE}
+# load packages
+library(readxl) 
+```
+
+```{r, eval=FALSE}
+# set the display options (not necessary)
+options(repr.matrix.max.rows=200, repr.matrix.max.cols=100) 
+```
+
+```{r, eval=FALSE}
+# set the working directory (if necessary)
+# "\" mark does not work. use a forward slash "/" instead. 
+#setwd('...') 
+```
+
+## 1. Importing Data<a id='sec1'></a>
+- For tsv files, use `read.table()`.
+- For csv files, use `read.table()`.
+    - Be sure to include `sep=','`.
+    - By adding `header=TRUE`, R recognizes that the first row is column names. 
+- For excel files, use `read_excel()` in `readxl` package.
+    - In that case, you need to convert the imported data to data frame using `as.data.frame()`.
+    - Alternatively, use `read.xlsx()` in `xlsx` package or `readWorksheetFromFile()` in `XLConnect` package. Both packages seem to require 64-bit Java for Windows users.
+- Alternatively, you could use `fread` in `data.table` package for large csv or tsv data.
+- Datasets
+    - `elec_senate.xlsx`: US Senate general election results 2008-2014
+    - `daily_TEMP_XXXX.csv`: US temperature 2008-2014
+    
+[back to top](#top)
+```{r, eval=FALSE}
+elec_data <- list() # make an empty list
+temp_data <- list()
+for (year in seq(2008,2014,by=2)) {
+    elec_data[[as.character(year)]] <- as.data.frame(read_excel('elec_senate.xlsx', sheet=as.character(year)))
+    temp_data[[as.character(year)]] <- read.table(paste0('daily_TEMP_', year, '.csv'), header=TRUE, sep=',')
+}
+```
+
+### Checking data entries
+- What is the type of `elec_data[['2008']]` and `elec_data['2008']`? Use `class()`.
+- Print the list of column names in `elec_data[['2008']]`. Hint: `colnames()`.
+- To see samples of the data. Use `head(mydf, #)` or `tail(mydf, #)`, where `#` means the number of rows. 
+```{r, eval=FALSE}
+#
+```
+
+- Next, check whether data have unique and non-missing ids.
+- Which variables are ids in `elec_data[['2008']]`?
+    - To check the uniqueness, use `any(duplicated(mydf$column))`.
+    - To check the non-missingness, use `any(is.na(mydf$column))`.
+- You can also check the non-missingness using `summary()`.
+- Check if ids are unique and non-missing in `elec_data[['2008']]`.
+```{r, eval=FALSE}
+#
+```
+
+## 2. Treating Missing Values<a id='sec2'></a>
+- Print `elec_data[['2008']]`. We already know that some items are missing.
+- Recall: There are several strategies to handle missing data:
+    1. Use a mask
+    2. Replace it with a sentinel value (e.g., -999)
+    3. Do nothing (decide later)
+    
+[back to top](#top)
+```{r, eval=FALSE}
+elec_data[['2008']]
+```
+
+### What are missing values in R? 
+- There are three (four) types.
+    - `NULL`: Non existence.
+    - `NaN` (Not a Number): A missing numerical value (double).
+    - `NA` (Not Available): A missing value (logical).
+    - (`Inf`: An infinite number.)
+- Print vectors in the below example.
+- What happens if you aggregate all items in each vector?
+    - Try `sum()` and `sum( , na.rm=TRUE)`. This `na.rm=TRUE` option ignores `NaN` and `NA`.
+```{r, eval=FALSE}
+(vec1 <- c(1, 2, 3, NA))
+(vec2 <- c(1, 2, 3, NaN))
+(vec3 <- c(1, 2, 3, NULL))
+(vec4 <- c(1, 2, 3, Inf))
+```
+
+### Handling missing values
+- Useful functions:
+    - Checking: `is.na()` and `!is.na()`.
+    - Also, you can combine them with `any()` or `all()`.
+- Print `vec1` and `df1`.
+- Replace missing values with zeros in `vec1` or `df1`.
+    - Use `myvec[is.na(myvec)] <- 0` and `mydf[is.na(mydf)] <- 0`.
+- Drop missing values in `vec1` or `df1`.
+    - Use `myvec <- myvec[!is.na(myvec)]` and `mydf <- mydf[!is.na(mydf)]`.
+```{r, eval=FALSE}
+vec1 <- c(1.0, NaN, 3.0, NA, NULL)
+df1 <- as.data.frame(matrix(c(1.0, NA, 3.0, NA, 5.0, NaN, 7.0, 8.0, NaN, NaN, NaN, NaN, NA, NA, NA, NA), ncol=4))
+```
+
+- To drop columns whose rows are all missing, you can use `colSums`.
+- To drop rows whose rows are all missing, you can use `rowSums`.
+- Print `df2` and `df3`.
+```{r, eval=FALSE}
+df1 <- as.data.frame(matrix(c(1.0, NA, 3.0, NA, 5.0, NaN, 7.0, 8.0, NaN, NaN, NaN, NaN, NA, NA, NA, NA), ncol=4))
+print(df1)
+print(colSums(is.na(df1)))
+df2 <- df1[, colSums(is.na(df1)) != nrow(df1)]
+print(rowSums(is.na(df1)))
+df3 <- df1[rowSums(is.na(df1)) != ncol(df1), ]
+```
+
+## 3. Selecting Columns<a id='sec3'></a>
+- Data may contain some redundant columns that will never be used in analysis. We will drop such columns to reduce the data size.
+- Candidates:
+    1. A column whose values are all missing
+    2. A column whose information is not important
+- You should be very careful about selecting columns.
+    - You may not use those columns in the current project but may use them in another project.
+- Let's check `elec_data[['2008']]`.
+    
+[back to top](#top)
+```{r, eval=FALSE}
+elec_data[['2008']]
+```
+
+- All columns look good. What about `temp_data[['2008']]`?
+```{r, eval=FALSE}
+head(temp_data[['2008']])
+# unique(temp_data[['2008']]['Parameter.Name']) # unique() prints unique entries
+```
+
+- Let's drop `Parameter.Name`, `Sample.Duration`, `Pollutant.Standard`, `Units.of.Measure`, and `AQI`.
+- First, remove columns that are all missing.
+```{r, eval=FALSE}
+for (year in seq(2008,2014,by=2)) {
+    temp_data[[paste0(year, '_keep')]] <- temp_data[[as.character(year)]][, colSums(is.na(temp_data[[as.character(year)]])) != nrow(temp_data[[as.character(year)]])]    
+}
+```
+
+- Next, drop the remaining columns.
+```{r, eval=FALSE}
+for (year in seq(2008,2014,by=2)) {
+    temp_data[[paste0(year, '_keep')]] <- temp_data[[paste0(year, '_keep')]][, !names(temp_data[[paste0(year, '_keep')]]) %in% c('Parameter.Name', 'Sample.Duration', 'Units.of.Measure')]
+}
+```
+
+### Changing Column Names
+- If column names use uppercases and space(s), are very long, or are written in any other non-generic format, we need to change them.
+- Check the column names in `temp_data[['2008_keep']]`.
+```{r, eval=FALSE}
+colnames(temp_data[['2008_keep']])
+```
+
+- I suggest that we (a) replace periods with underscores and (b) change uppercases to lowercases.
+    - To replace spaces with underscores, you can use `gsub()`.
+    - To change to lowercases, you can use `tolower()`. If you want to use uppercases, use `toupper()`.
+- Run the following code and check the column names in `temp_data[['2008_keep']]`.
+```{r, eval=FALSE}
+for (year in seq(2008,2014,by=2)) {
+    colnames(temp_data[[paste0(year, '_keep')]]) <- gsub("\\.", "_", colnames(temp_data[[paste0(year, '_keep')]]))
+    colnames(temp_data[[paste0(year, '_keep')]]) <- tolower(colnames(temp_data[[paste0(year, '_keep')]]))
+}
+colnames(temp_data[['2008_keep']])
+```
+
+## 4. Selecting Rows<a id='sec4'></a>
+- Next, let's move on to rows.
+- We need to decide which rows to keep in the final data.
+- Candidates:
+    - Rows that have missing values for important variables such as id
+    - Multiple rows per unit of observation
+    
+[back to top](#top)
+
+- First, let's look at `elec_data[['2008']]` again. Recall that all election results are missing for some rows.
+```{r, eval=FALSE}
+elec_data[['2008']]
+```
+
+- Let's drop such rows.
+- Run the following code.
+```{r, eval=FALSE}
+for (year in seq(2008,2014,by=2)) {
+    elec_data[[paste0(year, '_keep')]] <- elec_data[[as.character(year)]][rowSums(is.na(elec_data[[as.character(year)]][c('gelec_dem', 'gelec_rep', 'gelec_oth')])) != ncol(elec_data[[as.character(year)]][c('gelec_dem', 'gelec_rep', 'gelec_oth')]), ]
+}
+elec_data[['2008_keep']]
+```
+
+- Next, print `'date_local'` column for `"New York"` using `'state_name'` in `temp_data[['2008_keep']]`.
+    - What does this column mean?
+    - Should we drop all the dates that are not needed for the analysis? Election Days are:
+        - November 4th, 2008, November 2nd, 2010, November 6th, 2012, November 8th, 2014
+```{r, eval=FALSE}
+temp_data[['2008_keep']][temp_data[['2008_keep']]['state_name'] == "New York", 'date_local']
+```
+
+- I suggest we keep all dates. 
+    - The reason: We may use daily temperature on non-Election days as well.
+- Next, print `temp_data[['2008_keep']]` for `"New York"` and `"2008-11-04"`, i.e., Election Day. We know that there are multiple entries.
+```{r, eval=FALSE}
+temp_data[['2008_keep']][(temp_data[['2008_keep']]['state_name'] == "New York") & (temp_data[['2008_keep']]['date_local'] == "2008-11-04"), ]
+```
+
+- What should we do? There are several options. What are the pros and cons of each method?
+    1. Aggregate data
+    2. Reshape data
+    3. Delete some observations
+    4. Do nothing (decide later)
+
+- There is no right answer!
+- Let's take the fourth option for now. Two reasons: 
+    - There is no point of losing rich information in data (regarding 1 and 3). 
+    - There will be many missing values if we reshape them (regarding 2).
+    
+## 5. Treating Other Values<a id='sec5'></a>
+- It could often be the case that you need to modify entries in a dataset "by hand".
+    - Example: Some data entries are incorrect.
+- The bottom line: Save code for whatever you did for original data, if possible.
+    
+[back to top](#top)
+
+## 6. Saving Data<a id='sec6'></a>
+- You can save data in any format. However, the most preferred one is csv.
+- To save data as a csv file, use `write.table()`.
+    - `sep=","` option should be added for csv files.
+    - `na=""` means that missing values will be produced as blank cells.
+    - `row.names=FALSE` means that row names will not be written as a character vector of row names.
+- Use `write.xlsx()` in `readxl` package to save in excel format.
+    
+[back to top](#top)
+```{r, eval=FALSE}
+for (year in seq(2008,2014,by=2)) {
+    write.table(elec_data[[paste0(year, '_keep')]], file=paste0('us_senate_R_', year, '.csv'), sep=",", na="", row.names=FALSE)
+    write.table(temp_data[[paste0(year, '_keep')]], file=paste0('us_daily_temp_R_', year, '.csv'), sep=",", na="", row.names=FALSE)   
+}
+```
+
+
+
+
+
+
+
+

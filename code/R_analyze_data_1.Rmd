@@ -1,0 +1,220 @@
+---
+title: "Analyzing Data using R"
+author: "By Shuhei Kitamura"
+output:
+  html_document: default
+---
+
+### Outline<a id='top'></a>
+1. [Summary Tables](#sec1)
+2. [Figures](#sec2)
+3. [Regression Tables](#sec3)
+
+```{r, eval=FALSE}
+# load packages
+library(texreg)
+library(xtable)
+library(lfe) 
+library(tidyverse)
+#library(plyr)
+```
+
+```{r, eval=FALSE}
+# set the display options (not necessary)
+options(repr.matrix.max.rows=200, repr.matrix.max.cols=100) 
+options(repr.plot.width=4, repr.plot.height=4) 
+```
+
+```{r, eval=FALSE}
+# set a seed
+set.seed(123456789) 
+```
+
+```{r, eval=FALSE}
+# set the working directory (if necessary)
+# setwd('...') 
+```
+
+```{r, eval=FALSE}
+# importing data
+data <- read.table('data_use_R.csv', sep=",", header=TRUE) # import data 
+print(nrow(data))
+data = data[data['gelec_total']!=0, ] # drop rows
+print(nrow(data))
+```
+
+## 1. Summary Tables<a id='sec1'></a>
+- A summary table contains the statistics of your data such as mean, std, and the number of observation.
+- Summary tables are very useful because people can understand the details of your data.
+- To make a summary table, you can use `xtable` in `xtable` package.
+- You can produce an output table in several format. I suggest the LaTeX format.
+    - The reason: You can compile the table easily when you write a paper.
+- For the moment, we produce files with the `txt` file extension.
+    - If you already have TeX in your computer, change the file extension from `txt` to `tex`.
+            
+[back to top](#top)
+```{r, eval=FALSE}
+sum_table <- data %>%
+    select('gelec_dem', 'gelec_rep', 'gelec_oth', 'gelec_total', 'rep_share', 'dem_share', 'elec_year', 'temp_mean', 'temp_max_max', 'temp_max_mean') %>%
+    gather(key='key', value='value') %>%
+    group_by(key) %>%
+    summarize(mean = mean(value, na.rm=TRUE), 
+              std = sd(value, na.rm=TRUE),
+              min = min(value, na.rm=TRUE),
+              max = max(value, na.rm=TRUE),
+              n = sum(!is.na(value))) 
+
+sum_table[['id']] <- c(6, 7, 1, 3, 2, 4, 5, 9, 10, 8) 
+sum_table <- sum_table[order(sum_table[ ,'id']),][-7] # order sum_table
+print(xtable(sum_table, digits=2), type="latex", file='sum_stat_R.txt')
+```
+
+## 2. Figures<a id='sec2'></a>
+- Good papers always have figures that summarize results well.
+    - You should not write a paper only with boring tables!
+- A very useful package for plotting figures is `ggplot2`.
+    - A [cheat sheet](https://github.com/rstudio/cheatsheets/blob/master/data-visualization-2.1.pdf) is available.  
+- There are several types of figures: histograms, density plots, scatter plots, bar plots, line plots...
+    - Each type has different purposes.
+- Regarding the format, I suggest either `png` or `jpg`.
+
+[back to top](#top)
+
+### Histograms
+- Histograms are often used to show the distributions of your data.
+```{r, eval=FALSE}
+ggplot(data) + 
+    geom_histogram(aes(x=rep_share), breaks=c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0), alpha=0.3, fill='red', na.rm=TRUE)  +
+    geom_histogram(aes(x=dem_share), breaks=c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0), alpha=0.3, fill='blue', na.rm=TRUE)  +
+    labs(title="Vote share, 2008-2014", x="") +
+    theme(
+        panel.background = element_rect(fill=NA),
+        panel.border = element_rect(fill=NA, color='grey75'),
+        axis.ticks = element_line(color='grey85'),
+        legend.position = 'none',
+        plot.title = element_text(hjust=0.5, size=9),
+        axis.title = element_text(size=9),
+        axis.text = element_text(size=9)
+    )
+ggsave('hist_rep_share_R.png', width=4, height=4) # save figure
+```
+
+### Density Plots
+- Density plots are a variation of histograms.
+    - For density plots, you employ some method to smooth the distribution.
+    - It is not affected by, e.g., how you choose bins.
+```{r, eval=FALSE}
+data1 <- data.frame(value=rnorm(1000,0,1))
+ggplot(data1, aes(x=value)) +
+    geom_histogram(bins=100, alpha=0.3, aes(y=..density..)) +
+    stat_density(geom="line", color='red') +
+    labs(title="title", x="", y="") +
+    theme(
+        panel.background = element_rect(fill=NA),
+        panel.border = element_rect(fill=NA, color='grey75'),
+        axis.ticks = element_line(color='grey85'),
+        legend.position = 'none',
+        plot.title = element_text(hjust=0.5, size=9),
+        axis.title = element_text(size=9),
+        axis.text = element_text(size=9)
+    )
+```
+
+### Bar Plots
+- Bar plots are often used to compare statistics (e.g., mean) for different groups.
+```{r, eval=FALSE}
+data1 <- data.frame(
+    name = c("tom", "jerry", "spike", "tyke"),
+    height = c(1.75, 1.82, 1.65, 1.4),
+    treatment = c(1, 1, 0, 0))
+
+ggplot(data1, aes(x=treatment, y=height, fill=factor(treatment))) + 
+    stat_summary(fun=mean, geom='bar', alpha=0.3) +
+    scale_fill_manual(values=c('red', 'blue')) +
+    scale_x_continuous(breaks=c(0,1)) +
+    labs(title="", x="treatment", y="average height") +
+    theme(
+        panel.background = element_rect(fill=NA),
+        panel.border = element_rect(fill=NA, color='grey75'),
+        axis.ticks = element_line(color='grey85'),
+        legend.position = 'none',
+        plot.title = element_text(hjust=0.5, size=9),
+        axis.title = element_text(size=9),
+        axis.text = element_text(size=9)
+    )
+```
+
+### Scatter Plots
+- Scatter plots are often used to show a relationship between two samples.
+```{r, eval=FALSE}
+ggplot(data, aes(x=temp_max_max, y=rep_share)) +
+    geom_point(color='blue', na.rm=TRUE) +
+    labs(title="",x="Mean temperature",y="Republican vote share") +
+    theme(
+        panel.background = element_rect(fill = NA),
+        panel.border = element_rect(fill = NA, color = "grey75"),
+        axis.ticks = element_line(color = "grey85"),
+        legend.position = "none",
+        plot.title = element_text(hjust = 0.5, size=9),
+        axis.title = element_text(size=9),
+        axis.text = element_text(size=9)
+    )
+```
+
+### Line Plots
+- Line plots are often used to show time trends.
+```{r, eval=FALSE}
+n <- 1000
+data1 <- data.frame(
+    sample = 1:n,
+    group=rep(c("one", "two", "three"), each=n),
+    value=c(cumsum(rnorm(n,0,1)), cumsum(rnorm(n,0,1)), cumsum(rnorm(n,0,1))))
+
+ggplot(data1, aes(x=sample, y=value)) +
+    geom_line(aes(colour=group)) +
+    labs(title="Title", x="", y="") +
+    scale_color_manual(name="", values=c("blue","red","yellow")) +
+    theme(
+        panel.background = element_rect(fill=NA),
+        panel.border = element_rect(fill=NA, color="grey75"),
+        axis.ticks = element_line(color="grey85"),
+        legend.position = "bottom",
+        legend.key = element_blank(),
+        legend.text = element_text(size=8),
+        plot.title = element_text(hjust=0.5, size=9),
+        axis.title = element_text(size=9),
+        axis.text = element_text(size=9)
+    )
+```
+
+## 3. Regression Tables<a id='sec3'></a>
+- To run a regression, you can use, e.g., `lm` or `felm` in `lfe` package.
+- To produce a table of the regression results, you can use `stargazer` in `stargazer` package.
+    - If you want to produce the result in tex format, use `type=latex` and replace `.txt` with `.tex`.
+- How can you interpret the regression results?
+
+[back to top](#top)
+```{r, eval=FALSE}
+reg1 <- felm(rep_share ~ ln_temp_max_max, data=data)
+reg2 <- felm(rep_share ~ ln_temp_max_max | state_short + elec_year, data=data)
+reg3 <- felm(rep_share ~ ln_temp_max_max | state_short + elec_year | 0 | state_short, data=data)
+
+texreg(list(reg1, reg2, reg3), 
+       file='estimates_R.txt',
+       custom.model.names = c("OLS", "FE", "FE+cluster"),
+       caption="Table 1: Correlation between Election Day temperature and Senate Republican vote share",
+       omit.coef="Intercept", digit=3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
