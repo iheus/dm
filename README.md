@@ -17,8 +17,8 @@ This is the repository for a data management course at OSIPP, Osaka University.
     - python_basics_1_mod.ipynb
   - Data cleaning and analysis
     - 2_data_management.pdf
-    - python_clean_data_1.ipynb
-    - python_make_final_data_1.ipynb
+    - python_clean_data_1_mod.ipynb
+    - python_make_final_data_1_mod.ipynb
     - python_analyze_data_1_mod.ipynb
   - Applications
     - python_scraping_1_mod.ipynb (web scraping)
